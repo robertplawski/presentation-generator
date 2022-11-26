@@ -6,6 +6,7 @@ import pptx
 
 # Big thanks, I couldn't figure it out myself
 # https://stackoverflow.com/a/12472564
+
 def flatten(S):
     if S == []:
         return S
@@ -20,18 +21,18 @@ class Generator:
         self.title = title
         self.author = author
         self.contents = []
+        
+        self.wikipedia = wikipediaapi.Wikipedia(language=lang,extract_format=wikipediaapi.ExtractFormat.WIKI) # Create wikipedia class
+        self.pages = self.parse_raw_topics(topics) # Parse topics
+        self.presentation = pptx.Presentation() # Create presentation class
 
-        self.wikipedia = wikipediaapi.Wikipedia(language=lang,extract_format=wikipediaapi.ExtractFormat.WIKI)
-        self.pages = self.parse_raw_topics(topics)
-        self.presentation = pptx.Presentation()
-
-        self.generate_content(self.pages, self.presentation)
-        self.save_content()
+        self.generate_content(self.pages, self.presentation) # Generate content
+        self.save_content() # Save content
 
     def parse_raw_topics(self, topics):
         result = []
-        for topic in topics:
-            if "#" in topic:
+        for topic in topics: 
+            if "#" in topic: 
                 topic = topic.split("#")
                 page = self.wikipedia.page(topic[0])
                 section = page.section_by_title(topic[1])
