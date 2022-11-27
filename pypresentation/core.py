@@ -16,12 +16,13 @@ def flatten(S):
     return S[:1] + flatten(S[1:])
 
 class Generator:
-    def __init__(self, topics: List[str], lang: str = "pl", author:str = "Author", title:str = "Title", path: Path=Path("output.pptx")):
+    def __init__(self, topics: List[str], lang: str = "pl", author:str = "Author", title:str = "Title", path: Path=Path("output.pptx"),max_letters_per_page: int = 500, split_on: str = "\n"):
         self.lang = lang
         self.path = path
         self.title = title
         self.author = author
-        self.max_letters_per_page = 500
+        self.max_letters_per_page = max_letters_per_page
+        self.split_on = split_on
         self.contents = []
         
         self.wikipedia = wikipediaapi.Wikipedia(language=lang,extract_format=wikipediaapi.ExtractFormat.WIKI, data={"action":"parse"}) # Create wikipedia class
@@ -78,8 +79,8 @@ class Generator:
         for page in pages:
             count = 1
             last_count = 0
-            for c in page.text:
-                if c == "." and last_count > self.max_letters_per_page:
+            for c in page.text: ## replace this with a custom regex, for example \(\.) ([A-Z]\w+)\g (searching for end of sentence, "Goodbye, my friend[. N]ext sentence")
+                if c == self.split_on and last_count > self.max_letters_per_page:
                     count+=1;
                     last_count = 0
                 last_count+=1
@@ -88,7 +89,7 @@ class Generator:
                 lst = [0]
                 last_count = 0
                 for pos,char in enumerate(page.text):
-                    if char == "." and last_count > self.max_letters_per_page:
+                    if char == self.split_on and last_count > self.max_letters_per_page:
                         lst.append(pos)
                         last_count = 0
                     last_count+=1
@@ -100,11 +101,11 @@ class Generator:
                         y = lst[i+1]
                     else:
                         y = len(page.text)
-                    ptext = page.text[slice(x,y)].replace("\n","").strip("\n").strip(".")
+                    ptext = page.text[slice(x,y)].replace("\n","").strip("\n").strip(self.split_on)
                     if ptext != "":
                         slide = prs.slides.add_slide(prs.slide_layouts[1])
                         slide.shapes.title.text = f"""{page.title} ({i+1}/{amount_of_slices})"""
-                        slide.placeholders[1].text = ptext                   
+                        slide.placeholders[1].text = ptext                 
                         slide.placeholders[1].text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
                         
     def save_content(self):
