@@ -93,7 +93,6 @@ class Generator:
                         last_count = 0
                     last_count+=1
                 lst.append(len(page.text))
-                print(lst)
 
                 if len(lst) != 0:
                     x = lst[i]
