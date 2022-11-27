@@ -12,7 +12,7 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 @app.command()
-def generate(topics: List[str], path: Path = typer.Option("output.pptx","--output","-o"),author: str = typer.Option("Author","--author","-a"),title: str = typer.Option("Title", "--title", "-t"),lang: str = typer.Option("pl","--language","-l")):
+def generate(topics: List[str], path: Path = typer.Option("./data/output.pptx","--output","-o"),author: str = typer.Option("Author","--author","-a"),title: str = typer.Option("Title", "--title", "-t"),lang: str = typer.Option("pl","--language","-l")):
     generator = core.Generator(topics=topics, lang=lang, path=path, author=author, title=title)
     raise typer.Exit()
 

@@ -1,6 +1,7 @@
 from typing import Optional, List
 from pathlib import Path
 from itertools import chain
+from pptx.enum.text import MSO_AUTO_SIZE
 import wikipediaapi
 import pptx
 
@@ -20,9 +21,10 @@ class Generator:
         self.path = path
         self.title = title
         self.author = author
+        self.max_letters_per_page = 500
         self.contents = []
         
-        self.wikipedia = wikipediaapi.Wikipedia(language=lang,extract_format=wikipediaapi.ExtractFormat.WIKI) # Create wikipedia class
+        self.wikipedia = wikipediaapi.Wikipedia(language=lang,extract_format=wikipediaapi.ExtractFormat.WIKI, data={"action":"parse"}) # Create wikipedia class
         self.pages = self.parse_raw_topics(topics) # Parse topics
         self.presentation = pptx.Presentation() # Create presentation class
 
@@ -69,14 +71,42 @@ class Generator:
         slide.placeholders[0].text = self.title
         slide.placeholders[1].text = self.author
     
-        contentslide= prs.slides.add_slide(prs.slide_layouts[1])
+        contentslide=prs.slides.add_slide(prs.slide_layouts[1])
         contentslide.placeholders[0].text = "Spis treści"
         contentslide.placeholders[1].text = "\n".join(self.contents)
 
         for page in pages:
-            slide = prs.slides.add_slide(prs.slide_layouts[1])
-            slide.shapes.title.text = page.title
-            slide.placeholders[1].text = page.text
+            count = 1
+            last_count = 0
+            for c in page.text:
+                if c == "." and last_count > self.max_letters_per_page:
+                    count+=1;
+                    last_count = 0
+                last_count+=1
+            amount_of_slices = count
+            for i in range(amount_of_slices):
+                lst = [0]
+                last_count = 0
+                for pos,char in enumerate(page.text):
+                    if char == "." and last_count > self.max_letters_per_page:
+                        lst.append(pos)
+                        last_count = 0
+                    last_count+=1
+                lst.append(len(page.text))
+                print(lst)
 
+                if len(lst) != 0:
+                    x = lst[i]
+                    if len(lst) != 1:
+                        y = lst[i+1]
+                    else:
+                        y = len(page.text)
+                    ptext = page.text[slice(x,y)].replace("\n","").strip("\n").strip(".")
+                    if ptext != "":
+                        slide = prs.slides.add_slide(prs.slide_layouts[1])
+                        slide.shapes.title.text = f"""{page.title} ({i+1}/{amount_of_slices})"""
+                        slide.placeholders[1].text = ptext                   
+                        slide.placeholders[1].text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+                        
     def save_content(self):
         self.presentation.save(self.path)
