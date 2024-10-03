@@ -8,8 +8,8 @@ setup(
     name='pypresentation',
     version='0.1.0',
 
-    author="0x45R",
-    url="https://github.com/0x45R/presentation-generator",
+    author="robertplawski",
+    url="https://github.com/robertplawski/presentation-generator",
 
     description='Python script that generates a presentation based on a given topic',
     long_description=long_description,
